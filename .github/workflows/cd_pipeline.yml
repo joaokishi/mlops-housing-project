@@ -1,0 +1,50 @@
+name: MLOps Pipeline
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+          lfs: true
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+
+      - name: Install Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pytest httpx
+
+      - name: Run Tests (CI)
+        run: pytest
+
+  deploy-to-huggingface:
+      needs: build-and-test
+      runs-on: ubuntu-latest
+      steps:
+        - name: Checkout Code
+          uses: actions/checkout@v3
+          with:
+            fetch-depth: 0
+            lfs: true
+
+        - name: Push to Hugging Face Hub (CD)
+          env:
+            HF_TOKEN: ${{ secrets.HF_TOKEN }}
+          run: |
+            # Debug: Check if token exists (Prints "Found" or "Missing" without revealing the key)
+            if [ -z "$HF_TOKEN" ]; then echo "❌ TOKEN IS MISSING in the environment!"; else echo "✅ Token found in environment."; fi
+            
+            # Force git to use the token
+            git remote add space https://joaokishi:$HF_TOKEN@huggingface.co/spaces/joaokishi/mlops-project
+            git push --force space main
