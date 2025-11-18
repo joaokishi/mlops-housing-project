@@ -34,17 +34,15 @@ jobs:
       steps:
         - name: Checkout Code
           uses: actions/checkout@v3
-          with:
-            fetch-depth: 0
-            lfs: true
+          # We don't need LFS here anymore because the CLI handles it
+        
+        - name: Install Hugging Face CLI
+          run: pip install huggingface_hub
 
-        - name: Push to Hugging Face Hub (CD)
+        - name: Push to Hub
           env:
             HF_TOKEN: ${{ secrets.HF_TOKEN }}
+          # This command uploads the whole folder (.) to your Space
+          # It automatically handles large files and authentication
           run: |
-            # Debug: Check if token exists (Prints "Found" or "Missing" without revealing the key)
-            if [ -z "$HF_TOKEN" ]; then echo "❌ TOKEN IS MISSING in the environment!"; else echo "✅ Token found in environment."; fi
-            
-            # Force git to use the token
-            git remote add space https://joaokishi:$HF_TOKEN@huggingface.co/spaces/joaokishi/mlops-project
-            git push --force space main
+            huggingface-cli upload joaokishi/mlops-project . . --repo-type=space --token=$HF_TOKEN
