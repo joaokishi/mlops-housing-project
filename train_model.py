@@ -6,7 +6,7 @@ from sklearn.linear_model import LinearRegression
 from sklearn.datasets import fetch_california_housing
 from sklearn.model_selection import train_test_split
 import joblib
-from sklearn.pipeline import Pipeline # We use this to save the file manually
+from sklearn.pipeline import Pipeline
 
 # 1. PREPARE DATA
 print("Loading data...")
@@ -19,7 +19,6 @@ pipeline = Pipeline([
     ('scaler', StandardScaler()),
     ('rf', RandomForestRegressor(n_estimators=50, max_depth=10, random_state=42))
 ])
-# Fit the PIPELINE, not just the model
 pipeline.fit(X_train, y_train)
 # 3. TRACK WITH MLFLOW
 mlflow.set_experiment("No_Cloud_Housing_Project")

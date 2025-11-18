@@ -1,10 +1,7 @@
 import requests
 
-# REPLACE THIS with your actual Space URL
-# Example: "https://joaokishi-housing-price-predictor.hf.space"
 API_URL = "https://joaokishi-mlops-project.hf.space" 
 
-# The endpoint we created
 endpoint = f"{API_URL}/predict"
 
 # Example data (same as before)
