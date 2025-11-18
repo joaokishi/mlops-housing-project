@@ -1,0 +1,62 @@
+name: Auto-Tuning Bot
+
+on:
+  schedule:
+    - cron: '0 0 * * *' # Runs every day at midnight
+  workflow_dispatch: # Allows manual click
+
+jobs:
+  optimize-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+          lfs: true
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+
+      - name: Install Dependencies
+        run: |
+          pip install -r requirements.txt
+
+      - name: Run Optimization Script
+        env:
+          DAGSHUB_URI: ${{ secrets.DAGSHUB_URI }}
+          DAGSHUB_USERNAME: ${{ secrets.DAGSHUB_USERNAME }}
+          DAGSHUB_TOKEN: ${{ secrets.DAGSHUB_TOKEN }}
+          # MLflow Authentication
+          MLFLOW_TRACKING_USERNAME: ${{ secrets.DAGSHUB_USERNAME }}
+          MLFLOW_TRACKING_PASSWORD: ${{ secrets.DAGSHUB_TOKEN }}
+        run: python tune.py
+
+      - name: Check if Model Updated
+        id: check_file
+        run: |
+          if [ -f "model_updated.txt" ]; then
+            echo "updated=true" >> $GITHUB_OUTPUT
+            rm model_updated.txt
+          else
+            echo "updated=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Commit New Champion
+        if: steps.check_file.outputs.updated == 'true'
+        run: |
+          git config --global user.email "robot@github.com"
+          git config --global user.name "Auto-Tuning Bot"
+          git add model.joblib
+          git commit -m "🏆 Auto-Tuning: New Champion Model Promoted"
+          git push
+
+      - name: Deploy to Hugging Face
+        if: steps.check_file.outputs.updated == 'true'
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+        run: |
+          pip install --upgrade huggingface_hub
+          python -c "import os; from huggingface_hub import HfApi; HfApi(token=os.environ['HF_TOKEN']).upload_folder(folder_path='.', repo_id='joaokishi/mlops-project', repo_type='space')"
