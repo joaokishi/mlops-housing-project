@@ -39,8 +39,8 @@ jobs:
           env:
             HF_TOKEN: ${{ secrets.HF_TOKEN }}
           run: |
-            # 1. Install the tool
-            pip install huggingface_hub
+            # 1. Install the library (Force upgrade to be safe)
+            pip install --upgrade huggingface_hub
             
-            # 2. Run the upload immediately
-            python -m huggingface_hub.cli upload joaokishi/mlops-project . . --repo-type=space --token=$HF_TOKEN
+            # 2. Use Python code to upload (Bypasses all CLI/Path issues)
+            python -c "import os; from huggingface_hub import HfApi; HfApi(token=os.environ['HF_TOKEN']).upload_folder(folder_path='.', repo_id='joaokishi/mlops-project', repo_type='space')"
