@@ -1,5 +1,4 @@
 import mlflow
-import dagshub
 import joblib
 import random
 import os
@@ -9,14 +8,18 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.datasets import fetch_california_housing
 from sklearn.model_selection import train_test_split
 
-# 1. SETUP
-dagshub.init(repo_owner='joaokishi', repo_name='mlops-housing-project', mlflow=True)
-mlflow.set_tracking_uri(os.environ.get("DAGSHUB_URI"))
+# 1. SETUP (Pure MLflow)
+# We removed dagshub.init(). We rely on environment variables passed by GitHub Actions.
+tracking_uri = os.environ.get("DAGSHUB_URI")
+if not tracking_uri:
+    print("⚠️ Warning: DAGSHUB_URI not found. Using local tracking.")
+else:
+    mlflow.set_tracking_uri(tracking_uri)
 
 # ---------------------------------------------------------
 # CONFIGURATION
 # ---------------------------------------------------------
-QUALITY_GATE = 0.65  # Minimum Score required to deploy
+QUALITY_GATE = 0.65
 EXPERIMENT_NAME = "Housing_Price_Gatekeeper"
 
 mlflow.set_experiment(EXPERIMENT_NAME)
@@ -29,7 +32,7 @@ print("🧪 Training a new candidate model...")
 housing = fetch_california_housing()
 X_train, X_test, y_train, y_test = train_test_split(housing.data, housing.target, random_state=42)
 
-# Generate Random Config (Simulating active research)
+# Generate Random Config
 n_estimators = random.randint(10, 200)
 max_depth = random.randint(2, 20)
 
@@ -54,19 +57,17 @@ with mlflow.start_run():
     if new_score < QUALITY_GATE:
         # --- REJECT ---
         print(f"❌ REJECTED: Score ({new_score:.4f}) is below threshold ({QUALITY_GATE}).")
-        print("Keeping the current production model.")
         mlflow.log_param("status", "rejected")
         
     else:
         # --- ACCEPT ---
         print(f"✅ ACCEPTED: Score ({new_score:.4f}) passed the gate ({QUALITY_GATE}).")
-        print("Promoting to Production...")
         mlflow.log_param("status", "deployed")
         
-        # Save the model
+        # Save model
         joblib.dump(model_pipeline, "model.joblib")
         mlflow.log_artifact("model.joblib")
         
-        # Create the flag file so GitHub Actions knows to push
+        # Create flag file for GitHub Actions
         with open("model_updated.txt", "w") as f:
             f.write("true")
