@@ -43,4 +43,4 @@ jobs:
             pip install huggingface_hub
             
             # 2. Run the upload immediately
-            huggingface-cli upload joaokishi/mlops-project . . --repo-type=space --token=$HF_TOKEN
+            python -m huggingface_hub.cli upload joaokishi/mlops-project . . --repo-type=space --token=$HF_TOKEN
