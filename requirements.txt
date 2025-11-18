@@ -7,3 +7,5 @@ joblib
 pydantic
 mlflow
 dagshub
+streamlit
+requests
