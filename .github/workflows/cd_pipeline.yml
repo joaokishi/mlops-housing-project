@@ -34,15 +34,13 @@ jobs:
       steps:
         - name: Checkout Code
           uses: actions/checkout@v3
-          # We don't need LFS here anymore because the CLI handles it
         
-        - name: Install Hugging Face CLI
-          run: pip install huggingface_hub
-
-        - name: Push to Hub
+        - name: Deploy to Hugging Face
           env:
             HF_TOKEN: ${{ secrets.HF_TOKEN }}
-          # This command uploads the whole folder (.) to your Space
-          # It automatically handles large files and authentication
           run: |
+            # 1. Install the tool
+            pip install huggingface_hub
+            
+            # 2. Run the upload immediately
             huggingface-cli upload joaokishi/mlops-project . . --repo-type=space --token=$HF_TOKEN
