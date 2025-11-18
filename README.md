@@ -17,16 +17,17 @@ A production-grade Machine Learning pipeline that automates the training, testin
 
 ## 🏗 Architecture
 This project implements a "Serverless MLOps" architecture (Cardless Stack):
-1.  **Training:** Scikit-Learn Linear Regression model trained on California Housing data.
+1.  **Training:** Scikit-Learn Random Forest Regression model trained on California Housing data.
 2.  **Tracking:** MLflow (Local) used for experiment tracking and metric logging.
 3.  **Serving:** FastAPI microservice wrapped in a Docker container.
 4.  **CI/CD:** GitHub Actions pipeline that automatically:
     * Sets up a Python environment.
     * Runs unit tests (`pytest`) to verify model integrity.
     * Deploys the container to Hugging Face Spaces upon success.
+5.  **Frontend:** Streamlit as a frontend to send the request data through sliders.
 
 ## 🛠 Tech Stack
-* **Core:** Python 3.9, Scikit-Learn, Pandas
+* **Core:** Python 3.9, Scikit-Learn, Pandas, Streamlit
 * **API:** FastAPI, Uvicorn
 * **DevOps:** Docker, GitHub Actions (CI/CD)
 * **Cloud:** Hugging Face Spaces (Hosting)
